@@ -3,6 +3,7 @@ const app = express()
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv').config();
 const cors = require('cors')
+const moment = require('moment')
 
 const mongoose = require('mongoose');
 let uri = process.env.MONGO_URI;
@@ -34,10 +35,10 @@ let exerciseSchema = new mongoose.Schema({
   userId: {type: String, required: true}, // string is required
   description: {type: String, required: true}, // string is required for description
   duration: {type: Number, required: true}, // Number of duration is required for duration
-  date: {type: Date, default: Date.now } //Enter in date || enter in todays date by default
+  date: {type: Date, required: true} //Enter in date 
 });
 
-// Exercise for mongoDB Call
+// // Exercise for mongoDB Call
 let Exercise = mongoose.model('Exercise', exerciseSchema);
 
 // Rules to follow for the project
@@ -89,14 +90,38 @@ app.get('/api/exercise/users', (req, res) => {
 // 3) I can add an exercise to any user by posting form data userId(_id), description, duration, 
 //   and optionally date to /api/exercise/add. If no date supplied it will use current date. 
 //   App will return the user object with the exercise fields added.
+
+// Adds a new exercise for a user
 app.post('/api/exercise/add', (req, res) => {
-  console.log(req.body);
-  // { userId: '5ed31407943edf20675a3e0e',
-  // description: 'burpee',
-  // duration: '15',
-  // date: '' }
- res.json(req.body);
+  let userId = req.body.userId;
+  let description = req.body.description;
+  let duration = req.body.duration;
+  let date = (req.body.date === '') ? moment().format('YYYY-MM-DD'): req.body.date; // if statement to check if it is empty. 
+  //--                                                                             // looking up user in user table
+  User.findById(userId, (err, user) => {
+    if (err) return;
+    if (user) { // if user ID is in table create a new entery with new schema
+      let newExercise = new Exercise({
+        userId: user._id,
+        description: description,
+        duration: duration,
+        date: date
+      });
+      // save to mongoDB in new table
+      newExercise.save((err, createdExercise) => {
+        if (err) return;
+        res.json({ // return JSON to page of newly created item
+          userId: userId,
+          description: description,
+          duration: duration,
+          date: date,
+          _id: createdExercise._id
+        });
+      }); 
+    }
+  });
 });
+
 
 
 // 4) I can retrieve a full exercise log of any user by getting 
