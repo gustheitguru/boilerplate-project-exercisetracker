@@ -22,13 +22,23 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
-// MongoDB Schema
+// MongoDB Schema for User creation
 let userSchema = new mongoose.Schema({
   username: String
 });
-
-// var for mongo call
+// User for mongoDB call
 let User = mongoose.model('User', userSchema);
+
+// MongoDB Schema for Exercise
+let exerciseSchema = new mongoose.Schema({
+  userId: {type: String, required: true}, // string is required
+  description: {type: String, required: true}, // string is required for description
+  duration: {type: Number, required: true}, // Number of duration is required for duration
+  date: {type: Date, default: Date.now } //Enter in date || enter in todays date by default
+});
+
+// Exercise for mongoDB Call
+let Exercise = mongoose.model('Exercise', exerciseSchema);
 
 // Rules to follow for the project
 
@@ -60,16 +70,40 @@ app.post('/api/exercise/new-user', (req, res) => {
 });
 
 
-// 2) I can get an array of all users by getting api/exercise/users 
+// 2) I can get an array of all users by getting '/api/exercise/users' 
 //   with the same info as when creating a user.
+
+app.get('/api/exercise/users', (req, res) => { 
+  User.find({},'username', (err, users) => { //find function on mongoose {Empty to return all}, 
+                                            //find all objects that have User as a key, Function to execute
+    let output = []; // put all objects into an array  
+    
+    users.map((user) => { // map users to output array
+      output.push(user); //push to array
+    });
+    
+    res.send(output); //send to page
+  });
+});
 
 // 3) I can add an exercise to any user by posting form data userId(_id), description, duration, 
 //   and optionally date to /api/exercise/add. If no date supplied it will use current date. 
 //   App will return the user object with the exercise fields added.
+app.post('/api/exercise/add', (req, res) => {
+  console.log(req.body);
+  // { userId: '5ed31407943edf20675a3e0e',
+  // description: 'burpee',
+  // duration: '15',
+  // date: '' }
+ res.json(req.body);
+});
+
 
 // 4) I can retrieve a full exercise log of any user by getting 
 //   /api/exercise/log with a parameter of userId(_id). App will return the user 
 //   object with added array log and count (total exercise count).
+
+
 
 // 5) I can retrieve part of the log of any user by also passing along 
 //   optional parameters of from & to or limit. (Date format yyyy-mm-dd, limit = int)
