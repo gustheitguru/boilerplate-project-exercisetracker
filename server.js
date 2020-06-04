@@ -127,9 +127,52 @@ app.post('/api/exercise/add', (req, res) => {
 // 4) I can retrieve a full exercise log of any user by getting 
 //   /api/exercise/log with a parameter of userId(_id). App will return the user 
 //   object with added array log and count (total exercise count).
-
-
-
+app.get('/api/exercise/log/', (req, res) => {
+  let userId = req.query.userId;
+  let from = req.query.from;
+  let to = req.query.to;
+  let limit = req.query.limit;
+  // console.log(userId);
+    
+    // let count = allEx.length;
+  // let id = '5ed5a28e6dabd1230812ba43';
+  
+  let userInfo = User.findById(userId, 'id username', (err, user) =>{
+    // console.log("user info " + user); 
+    if (err) return;
+    
+   if (from === undefined) {
+      from = new Date(0);
+    }
+    
+    if (to === undefined) {
+      to = new Date();
+    }
+    
+    if (limit === undefined) {
+      limit = 0;
+    } else {
+      limit = parseInt(limit); 
+    }
+  
+  let query = Exercise.find({userId: userId}, 'description duration date', (err, exer) => {
+      // console.log(exer);
+    if (err) return;
+    console.log(exer);
+    }).sort({ date: -1 }).limit(limit);
+    
+  query.exec((err, exercises) => {
+      if (err) return;
+      let workouts = exercises;
+      let count = workouts.length;
+      res.json({userID: user._id, username: user.username, count: count, log: workouts});
+  });
+    
+    
+  
+   });
+  
+});
 // 5) I can retrieve part of the log of any user by also passing along 
 //   optional parameters of from & to or limit. (Date format yyyy-mm-dd, limit = int)
 
