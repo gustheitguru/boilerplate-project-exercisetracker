@@ -35,7 +35,7 @@ let exerciseSchema = new mongoose.Schema({
   userId: {type: String, required: true}, // string is required
   description: {type: String, required: true}, // string is required for description
   duration: {type: Number, required: true}, // Number of duration is required for duration
-  date: {type: Date, required: true} //Enter in date 
+  date: {type: String, required: true} //Enter in date 
 });
 
 // // Exercise for mongoDB Call
@@ -95,9 +95,13 @@ app.get('/api/exercise/users', (req, res) => {
 app.post('/api/exercise/add', (req, res) => {
   let userId = req.body.userId;
   let description = req.body.description;
-  let duration = req.body.duration;
-  let date = (req.body.date === '') ? moment().format('YYYY-MM-DD'): req.body.date; // if statement to check if it is empty. 
+  let duration = Number(req.body.duration);
+  
+    
+  let date = (req.body.date === '') ? moment().format('ddd MMM DD YYYY'): moment(req.body.date, 'YYYY DD MM').format('ddd MMM DD YYYY'); // if statement to check if it is empty. 
+  
   //--                                                                             // looking up user in user table
+  // console.log(date);
   User.findById(userId, (err, user) => {
     if (err) return;
     if (user) { // if user ID is in table create a new entery with new schema
@@ -111,11 +115,11 @@ app.post('/api/exercise/add', (req, res) => {
       newExercise.save((err, createdExercise) => {
         if (err) return;
         res.json({ // return JSON to page of newly created item
-          userId: userId,
+          userId: user._id,
           description: description,
           duration: duration,
           date: date,
-          _id: createdExercise._id
+          username: user.username
         });
       }); 
     }
