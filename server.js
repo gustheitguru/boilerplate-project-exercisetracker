@@ -109,7 +109,8 @@ app.post('/api/exercise/add', (req, res) => {
         userId: user._id,
         description: description,
         duration: duration,
-        date: date
+        date: date,
+        username: user.username
       });
       // save to mongoDB in new table
       newExercise.save((err, createdExercise) => {
@@ -169,7 +170,7 @@ app.get('/api/exercise/log/', (req, res) => {
       if (err) return;
       let workouts = exercises;
       let count = workouts.length;
-      res.json({userID: user._id, username: user.username, count: count, log: workouts});
+      res.json({_id: user._id, username: user.username, count: count, log: workouts});
   });
     
     
